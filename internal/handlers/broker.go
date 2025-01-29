@@ -3,17 +3,24 @@ package handlers
 import (
 	"credit_broker/internal/services"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
-type LoginRequest struct {
-	Name     string `json:"name"`
+type AuthRequest struct {
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
+type AuthResponse struct {
+	Token string `json:"token"`
+}
+
+type UserID struct {
+	UserID int64 `json:"user-id"`
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
-	var user LoginRequest
+	var user AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -22,16 +29,44 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	broker := services.New()
 	defer broker.Close()
 
-	if err := broker.Login(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	var tokens AuthResponse
+	token, err := broker.Login(services.AuthRequest(user))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := json.NewEncoder(w).Encode(&user); err != nil {
+	tokens.Token = token
+
+	if err := json.NewEncoder(w).Encode(tokens); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Print(user)
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	var user AuthRequest
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	broker := services.New()
+	defer broker.Close()
+
+	var tokens UserID
+	userId, err := broker.Register(services.AuthRequest(user))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	tokens.UserID = userId
+
+	if err := json.NewEncoder(w).Encode(tokens); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

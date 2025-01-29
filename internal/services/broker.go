@@ -12,6 +12,11 @@ type Broker struct {
 	grpcConn *grpc.ClientConn
 }
 
+type AuthRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func New() *Broker {
 	conn, err := grpc.Dial("localhost:44044", grpc.WithInsecure())
 	if err != nil {
@@ -23,19 +28,31 @@ func New() *Broker {
 	}
 }
 
-func (b *Broker) Login() error {
+func (b *Broker) Login(request AuthRequest) (string, error) {
 	loginReq := &ssov1.LoginRequest{
-		Email:    "example@example.com",
-		Password: "securepassword",
+		Email:    request.Email,
+		Password: request.Password,
 		AppId:    1,
 	}
 
 	loginRes, err := b.conn.Login(context.Background(), loginReq)
 	if err != nil {
-		return err
+		return "", err
 	}
-	log.Printf("Received token: %s", loginRes.Token)
-	return nil
+	return loginRes.Token, nil
+}
+
+func (b *Broker) Register(request AuthRequest) (int64, error) {
+	regReq := &ssov1.RegisterRequest{
+		Email:    request.Email,
+		Password: request.Password,
+	}
+
+	loginRes, err := b.conn.Register(context.Background(), regReq)
+	if err != nil {
+		return 0, err
+	}
+	return loginRes.UserId, nil
 }
 
 func (b *Broker) IsAdmin() {
