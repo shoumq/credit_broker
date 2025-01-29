@@ -4,7 +4,6 @@ import (
 	"context"
 	ssov1 "github.com/shoumq/sso_protos/gen/go/sso"
 	"google.golang.org/grpc"
-	"log"
 )
 
 type Broker struct {
@@ -15,6 +14,10 @@ type Broker struct {
 type AuthRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type UserIDStruct struct {
+	UserID int64 `json:"user_id,omitempty"`
 }
 
 func New() *Broker {
@@ -55,23 +58,15 @@ func (b *Broker) Register(request AuthRequest) (int64, error) {
 	return loginRes.UserId, nil
 }
 
-func (b *Broker) IsAdmin(request AuthRequest) (bool, error) {
-	registerReq := &ssov1.RegisterRequest{
-		Email:    request.Email,
-		Password: request.Password,
+func (b *Broker) IsAdmin(request UserIDStruct) (bool, error) {
+	isAdmin := &ssov1.IsAdminRequest{
+		UserId: request.UserID,
 	}
 
-	registerRes, err := b.conn.Register(context.Background(), registerReq)
-
-	isAdminReq := &ssov1.IsAdminRequest{
-		UserId: registerRes.UserId,
-	}
-
-	isAdminRes, err := b.conn.IsAdmin(context.Background(), isAdminReq)
+	isAdminRes, err := b.conn.IsAdmin(context.Background(), isAdmin)
 	if err != nil {
-		log.Fatalf("could not check admin status: %v", err)
+		return false, err
 	}
-	log.Printf("Is user admin? %v", isAdminRes.IsAdmin)
 
 	return isAdminRes.IsAdmin, nil
 }

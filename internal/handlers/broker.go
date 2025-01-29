@@ -16,7 +16,11 @@ type AuthResponse struct {
 }
 
 type UserID struct {
-	UserID int64 `json:"user-id"`
+	UserID int64 `json:"user_id"`
+}
+
+type IsAdminS struct {
+	ID bool `json:"is_admin"`
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +76,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func IsAdmin(w http.ResponseWriter, r *http.Request) {
-	var user AuthRequest
+	var user UserID
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -81,15 +85,15 @@ func IsAdmin(w http.ResponseWriter, r *http.Request) {
 	broker := services.New()
 	defer broker.Close()
 
-	var tokens AuthResponse
-	token, err := broker.Login(services.AuthRequest(user))
+	var isAdminResp IsAdminS
+	isAdmin, err := broker.IsAdmin(services.UserIDStruct(user))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	tokens.Token = token
+	isAdminResp.ID = isAdmin
 
-	if err := json.NewEncoder(w).Encode(tokens); err != nil {
+	if err := json.NewEncoder(w).Encode(isAdminResp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
