@@ -55,10 +55,10 @@ func (b *Broker) Register(request AuthRequest) (int64, error) {
 	return loginRes.UserId, nil
 }
 
-func (b *Broker) IsAdmin() {
+func (b *Broker) IsAdmin(request AuthRequest) (bool, error) {
 	registerReq := &ssov1.RegisterRequest{
-		Email:    "example@example.com",
-		Password: "securepassword",
+		Email:    request.Email,
+		Password: request.Password,
 	}
 
 	registerRes, err := b.conn.Register(context.Background(), registerReq)
@@ -72,6 +72,8 @@ func (b *Broker) IsAdmin() {
 		log.Fatalf("could not check admin status: %v", err)
 	}
 	log.Printf("Is user admin? %v", isAdminRes.IsAdmin)
+
+	return isAdminRes.IsAdmin, nil
 }
 
 func (b *Broker) Close() {

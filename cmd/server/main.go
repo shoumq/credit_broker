@@ -11,6 +11,7 @@ func main() {
 
 	router.HandleFunc("/login", handlers.Login)
 	router.HandleFunc("/register", handlers.Register)
+	router.HandleFunc("/isadmin", handlers.IsAdmin)
 
 	if err := http.ListenAndServe(":8080", router); err != nil {
 		panic(err)
