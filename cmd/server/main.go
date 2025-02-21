@@ -9,11 +9,26 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/login", handlers.Login)
-	router.HandleFunc("/register", handlers.Register)
-	router.HandleFunc("/isadmin", handlers.IsAdmin)
+	router.HandleFunc("/login", withCORS(handlers.Login))
+	router.HandleFunc("/register", withCORS(handlers.Register))
+	router.HandleFunc("/is_admin", withCORS(handlers.IsAdmin))
 
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	if err := http.ListenAndServe(":8085", router); err != nil {
 		panic(err)
+	}
+}
+
+func withCORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next(w, r)
 	}
 }
