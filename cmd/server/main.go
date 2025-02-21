@@ -2,16 +2,17 @@ package main
 
 import (
 	"credit_broker/internal/handlers"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/login", withCORS(handlers.Login))
-	router.HandleFunc("/register", withCORS(handlers.Register))
-	router.HandleFunc("/is_admin", withCORS(handlers.IsAdmin))
+	router.HandleFunc("/api/auth/login", withCORS(handlers.Login))
+	router.HandleFunc("/api/auth/register", withCORS(handlers.Register))
+	router.HandleFunc("/api/auth/is_admin", withCORS(handlers.IsAdmin))
 
 	if err := http.ListenAndServe(":8085", router); err != nil {
 		panic(err)

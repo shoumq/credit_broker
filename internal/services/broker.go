@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	ssov1 "github.com/shoumq/sso_protos/gen/go/sso"
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,7 @@ type UserIDStruct struct {
 }
 
 func New() *Broker {
-	conn, err := grpc.Dial("localhost:44044", grpc.WithInsecure())
+	conn, err := grpc.Dial("sso:44044", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
